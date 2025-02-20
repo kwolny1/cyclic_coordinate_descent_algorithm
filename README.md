@@ -15,7 +15,7 @@ This project focuses on implementing the Cyclic Coordinate Descent (CCD) algorit
 * Compare LogRegCCD with sklearn’s LogisticRegression.
 * Analyze performance using various evaluation metrics.
 
-## Implementation details
+## Code Requirements
 * Implementation details:
   * fit(...)
   * validate(..., measure)
