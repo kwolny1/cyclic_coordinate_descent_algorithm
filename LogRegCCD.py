@@ -82,7 +82,7 @@ class LogRegCCD():
                 "beta": self.beta.copy()
             })
             # Convergence check
-            if np.max(np.abs(self.beta[j] - beta_old[j]))<1e-6 < tol:
+            if np.max(np.abs(self.beta - beta_old))<1e-6 < tol:
                 break
 
         return self
