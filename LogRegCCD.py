@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -10,21 +9,18 @@ class LogRegCCD():
     """
     **DESCRIPTION**
     """
-    def __init__(self, scaler=StandardScaler(), seed=42,): 
+    def __init__(self, seed=42,): 
         self.optimized = False
-        self.scaler = scaler
         self.seed = seed
 
 
     def __sigmoid(self, x): 
             return 1 / (1 + np.exp(-x))
-    
-    def __standarize(self, X, standarize=True):  
-        return pd.DataFrame(self.scaler.fit_transform(X)) if standarize else X
+        
         
         
 
-    def single_fit(self, X_train, y_train, lambda_=0.01, nr_iter=100, standarize=True, tol=1e-3): 
+    def single_fit(self, X_train, y_train, lambda_=0.01, nr_iter=100, tol=1e-5): 
         def compute_cost(X_train, y_train, lambda_):
             n = len(y_train)
             y_dash = X_train @ self.beta + self.beta_zero
@@ -52,7 +48,6 @@ class LogRegCCD():
             return w, z, soft_threshold(st_nom, lambda_)/st_denom
         
         np.random.seed(self.seed)
-        X_train = self.__standarize(X_train, standarize)
         g = X_train.shape[1]
         
         
@@ -62,11 +57,12 @@ class LogRegCCD():
 
         self.iter_hist = []
         beta_old = np.ones(g)
+        old_cost = np.inf
 
 
         for i in range(nr_iter): 
             for j in range(g): 
-                if np.abs(self.beta[j] - beta_old[j])<1e-6:
+                if np.abs(self.beta[j] - beta_old[j]) < tol:
                     continue
                 w, z, beta_j = calculate_coordinate_descent(X_train, y_train, lambda_, j)
                 self.beta[j], beta_old[j] = beta_j, self.beta[j]
@@ -82,8 +78,11 @@ class LogRegCCD():
                 "beta": self.beta.copy()
             })
             # Convergence check
-            if np.max(np.abs(self.beta - beta_old))<1e-6 < tol:
+            if np.max(np.abs(self.beta - beta_old)) < tol:
                 break
+            if np.abs(self.cost-old_cost) < tol: 
+                break
+            old_cost = self.cost
 
         return self
         
@@ -91,7 +90,7 @@ class LogRegCCD():
 
 
 
-    def validate(self, X_valid, y_valid, measure, standarize=True): 
+    def validate(self, X_valid, y_valid, measure): 
         """
         **DESCRIPTION**
 
@@ -108,9 +107,8 @@ class LogRegCCD():
         
 
         """
-        X_valid = self.__standarize(X_valid, standarize)
         # Get predicted probabilities
-        y_prob = self.predict_proba(X_valid, standarize=False)
+        y_prob = self.predict_proba(X_valid)
 
         # Convert probabilities to binary predictions 
         y_pred = (y_prob >= 0.5).astype(int)
@@ -119,7 +117,7 @@ class LogRegCCD():
         score = measure(y_valid, y_pred)
         return score
 
-    def predict_proba(self, X_test, standarize=True): 
+    def predict_proba(self, X_test): 
         """
         **DESCRIPTION**
 
@@ -132,19 +130,15 @@ class LogRegCCD():
         
 
         """
-        X_test = self.__standarize(X_test, standarize)
         return self.__sigmoid(X_test.dot(self.beta) + self.beta_zero)
         
 
-    def fit(self, X_train, y_train, X_valid=None, y_valid=None, eps=0.001, K=10, measure=accuracy_score, nr_iter=100, standarize=True, tol=1e-3):
+    def fit(self, X_train, y_train, X_valid=None, y_valid=None, eps=0.001, K=10, measure=accuracy_score, nr_iter=100, standarize=True, tol=1e-5):
         
-        X_train = self.__standarize(X_train, standarize)
 
         if X_valid is None and y_valid is None:
             X_valid = X_train
             y_valid = y_train
-        else: 
-            X_valid = self.__standarize(X_valid, standarize)
 
         n = len(y_train)
 
@@ -161,11 +155,11 @@ class LogRegCCD():
         full_history = [] 
         
         for lam in lambdas:
-            self.single_fit(X_train, y_train, lambda_=lam, nr_iter=nr_iter, standarize=False, tol=tol)
+            self.single_fit(X_train, y_train, lambda_=lam, nr_iter=nr_iter, tol=tol)
             betas.append(self.beta.tolist())
             betas_zero.append(self.beta_zero)
             costs.append(self.cost)
-            score = self.validate(X_valid, y_valid, measure, standarize=False)
+            score = self.validate(X_valid, y_valid, measure)
             scores.append(score)
             full_history.extend(self.iter_hist) 
 
@@ -179,13 +173,14 @@ class LogRegCCD():
         self.coeffs_df['Cost'] = costs
         self.coeffs_df['ValidationScore'] = scores
         
-        best_idx = np.argmin(costs)
+        best_idx = np.argmax(scores)
         self.lambda_ = lambdas[best_idx]
         self.beta = betas[best_idx]
         self.beta_zero = betas_zero[best_idx]
         self.score = scores[best_idx]
         self.iter_hist = full_history[best_idx]
         self.full_history = pd.DataFrame(full_history)
+        self.cost = costs[best_idx]
         return self
 
     def plot_coeff(self, filename):
