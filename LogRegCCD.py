@@ -6,9 +6,6 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class LogRegCCD(): 
-    """
-    **DESCRIPTION**
-    """
     def __init__(self, seed=42,): 
         self.optimized = False
         self.seed = seed
@@ -92,19 +89,15 @@ class LogRegCCD():
 
     def validate(self, X_valid, y_valid, measure): 
         """
-        **DESCRIPTION**
+        Return score of measure of X_valid, y_valid
 
         Parameters
         ----------
-        X_valid:
+        X_valid: validation dataframe
 
-        y_valid:
+        y_valid: validation labels
 
-        measure: 
-
-        Returns
-        -------
-        
+        measure: measure to score the data        
 
         """
         # Get predicted probabilities
@@ -119,21 +112,38 @@ class LogRegCCD():
 
     def predict_proba(self, X_test): 
         """
-        **DESCRIPTION**
+        Return probability of X_test. 
 
         Parameters
         ----------
-        X_test: 
-
-        Returns
-        -------
-        
+        X_test: test dataframe
 
         """
         return self.__sigmoid(X_test.dot(self.beta) + self.beta_zero)
         
 
-    def fit(self, X_train, y_train, X_valid=None, y_valid=None, eps=0.001, K=10, measure=accuracy_score, nr_iter=100, standarize=True, tol=1e-5):
+    def fit(self, X_train, y_train, X_valid=None, y_valid=None, eps=0.001, K=10, measure=accuracy_score, nr_iter=100, tol=1e-5):
+        """
+        Fit weights based on X_train, y_train and X_valid, y_valid
+
+        Parameters
+        ----------
+        X_test: train dataframe
+
+        y_train: train labels
+        
+        X_valid: validation dataframe
+
+        y_valid: validation labels
+
+        K, eps: parameters to fit lambda
+
+        measure: measure to score the data and select based weights based on X_valid, y_valid
+
+        nr_iter, tol: parameters for single fit on given lambda
+
+
+        """
         
 
         if X_valid is None and y_valid is None:
