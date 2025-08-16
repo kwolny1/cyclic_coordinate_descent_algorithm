@@ -2,6 +2,8 @@
 
 This project focuses on implementing the Cyclic Coordinate Descent (CCD) algorithm for L1-regularized logistic regression. https://www.jstatsoft.org/article/view/v033i01
 
+Description of the project and its results are provided in file **Salkowska_Seliga_Wolny.pdf**
+
 ## Project Tasks
 
 ### Task 1: Data Collection and Preparation
