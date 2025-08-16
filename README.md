@@ -1,6 +1,7 @@
 # Cyclic Coordinate Descent for Regularized Logistic Regression
+This project focuses on implementing the Cyclic Coordinate Descent (CCD) algorithm for L1-regularized logistic regression. 
 
-This project focuses on implementing the Cyclic Coordinate Descent (CCD) algorithm for L1-regularized logistic regression. https://www.jstatsoft.org/article/view/v033i01
+Paper with description of Cyclic Coordinate Descent algorithm: https://www.jstatsoft.org/article/view/v033i01. 
 
 Description of the project and its results are provided in file **Salkowska_Seliga_Wolny.pdf**
 
